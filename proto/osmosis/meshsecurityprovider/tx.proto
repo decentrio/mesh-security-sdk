@@ -5,6 +5,8 @@ import "gogoproto/gogo.proto";
 import "cosmos/msg/v1/msg.proto";
 import "cosmos/base/v1beta1/coin.proto";
 import "osmosis/meshsecurityprovider/genesis.proto";
+import "cosmos_proto/cosmos.proto";
+import "amino/amino.proto";
 
 option go_package = "github.com/osmosis-labs/mesh-security-sdk/x/meshsecurityprovider/types";
 
@@ -12,7 +14,7 @@ service Msg {
   option (cosmos.msg.v1.service) = true;
 
   rpc Test(MsgTest) returns (MsgTestResponse);
-  // UpdateParams defines an operation for updating the x/staking module
+  // UpdateParams defines an operation for updating the module's
   // parameters.
   // Since: cosmos-sdk 0.47
   rpc UpdateParams(MsgUpdateParams) returns (MsgUpdateParamsResponse);
@@ -45,3 +47,4 @@ message MsgUpdateParams {
 //
 // Since: cosmos-sdk 0.47
 message MsgUpdateParamsResponse {};
+

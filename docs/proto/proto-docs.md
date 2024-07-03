@@ -54,6 +54,11 @@ GenesisState defines the meshsecurityprovider module's genesis state.
 
 
 
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `vault_address` | [string](#string) |  |  |
+
+
 
 
 
@@ -197,7 +202,7 @@ Since: cosmos-sdk 0.47
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
 | `Test` | [MsgTest](#osmosis.meshsecurityprovider.MsgTest) | [MsgTestResponse](#osmosis.meshsecurityprovider.MsgTestResponse) |  | |
-| `UpdateParams` | [MsgUpdateParams](#osmosis.meshsecurityprovider.MsgUpdateParams) | [MsgUpdateParamsResponse](#osmosis.meshsecurityprovider.MsgUpdateParamsResponse) | UpdateParams defines an operation for updating the x/staking module parameters. Since: cosmos-sdk 0.47 | |
+| `UpdateParams` | [MsgUpdateParams](#osmosis.meshsecurityprovider.MsgUpdateParams) | [MsgUpdateParamsResponse](#osmosis.meshsecurityprovider.MsgUpdateParamsResponse) | UpdateParams defines an operation for updating the module's parameters. Since: cosmos-sdk 0.47 | |
 
  <!-- end services -->
 

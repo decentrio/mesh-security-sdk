@@ -14,13 +14,18 @@ type Keeper struct {
 	storeKey  storetypes.StoreKey
 	cdc       codec.BinaryCodec
 	authority string
+
+	bankKeeper types.BankKeeper
 }
 
-func NewKeeper(cdc codec.BinaryCodec, storeKey storetypes.StoreKey, authority string) *Keeper {
+func NewKeeper(cdc codec.BinaryCodec, storeKey storetypes.StoreKey,
+	authority string, bankKeeper types.BankKeeper,
+	) *Keeper {
 	return &Keeper{
 		storeKey:  storeKey,
 		cdc:       cdc,
 		authority: authority,
+		bankKeeper: bankKeeper,
 	}
 }
 
@@ -34,7 +39,7 @@ func (k Keeper) GetAuthority() string {
 	return k.authority
 }
 
-// SetParams sets the x/staking module parameters.
+// SetParams sets the module's parameters.
 func (k Keeper) SetParams(ctx sdk.Context, params types.Params) error {
 	if err := params.Validate(); err != nil {
 		return err
@@ -50,7 +55,7 @@ func (k Keeper) SetParams(ctx sdk.Context, params types.Params) error {
 	return nil
 }
 
-// GetParams sets the x/staking module parameters.
+// GetParams gets the module's parameters.
 func (k Keeper) GetParams(ctx sdk.Context) (params types.Params) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.ParamsKey)
@@ -77,4 +82,12 @@ func (k Keeper) ExportGenesis(ctx sdk.Context) *types.GenesisState {
 	return &types.GenesisState{
 		Params: k.GetParams(ctx),
 	}
+}
+
+func (k Keeper) Bond(ctx sdk.Context, actor sdk.AccAddress, delegator sdk.AccAddress, coin sdk.Coin) error {
+	return k.bankKeeper.DelegateCoins(ctx, delegator, actor, sdk.NewCoins(coin))
+}
+
+func (k Keeper) Unbond(ctx sdk.Context, actor sdk.AccAddress, delegator sdk.AccAddress, coin sdk.Coin) error {
+	return k.bankKeeper.UndelegateCoins(ctx, actor, delegator, sdk.NewCoins(coin))
 }

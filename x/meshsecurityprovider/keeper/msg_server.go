@@ -40,3 +40,4 @@ func (ms msgServer) UpdateParams(goCtx context.Context, msg *types.MsgUpdatePara
 
 	return &types.MsgUpdateParamsResponse{}, nil
 }
+
