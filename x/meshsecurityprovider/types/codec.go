@@ -2,24 +2,33 @@ package types
 
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/codec/types"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
-	authzcodec "github.com/cosmos/cosmos-sdk/x/authz/codec"
 )
 
-// RegisterLegacyAminoCodec registers the necessary x/meshsecurityprovider interfaces and concrete types
-// on the provided LegacyAmino codec. These types are used for Amino JSON serialization.
+// RegisterLegacyAminoCodec register types with legacy amino
 func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
-	cdc.RegisterConcrete(&MsgTest{}, "meshsecurityprovider/MsgTest", nil)
+	cdc.RegisterConcrete(&MsgDelegate{}, "provider/MsgDelegate", nil)
+	cdc.RegisterConcrete(&MsgUndelegate{}, "provider/MsgUndelegate", nil)
+	cdc.RegisterConcrete(&MsgSetConsumerCommissionRate{}, "provider/MsgSetConsumerCommissionRate", nil)
 }
 
-func RegisterInterfaces(registry types.InterfaceRegistry) {
+// RegisterInterfaces register types with interface registry
+func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	registry.RegisterImplementations(
 		(*sdk.Msg)(nil),
-		&MsgTest{},
+		&MsgDelegate{},
 	)
-
+	registry.RegisterImplementations(
+		(*sdk.Msg)(nil),
+		&MsgUndelegate{},
+	)
+	registry.RegisterImplementations(
+		(*sdk.Msg)(nil),
+		&MsgSetConsumerCommissionRate{},
+	)
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
 }
 
@@ -30,10 +39,6 @@ var (
 
 func init() {
 	RegisterLegacyAminoCodec(amino)
-	// Register all Amino interfaces and concrete types on the authz Amino codec so that this can later be
-	// used to properly serialize MsgGrant and MsgExec instances
+	cryptocodec.RegisterCrypto(amino)
 	sdk.RegisterLegacyAminoCodec(amino)
-	RegisterLegacyAminoCodec(authzcodec.Amino)
-
-	amino.Seal()
 }

@@ -1,17 +1,18 @@
 package types
 
-// DefaultGenesis returns the default meshsecurityprovider genesis state.
-func DefaultGenesis() *GenesisState {
+// NewGenesisState constructor
+func NewGenesisState(params Params) *GenesisState {
 	return &GenesisState{
-		Params: DefaultParams(),
+		Params: params,
 	}
 }
 
-// Validate performs basic genesis state validation returning an error upon any
-// failure.
-func (gs GenesisState) Validate() error {
-	if err := gs.Params.Validate(); err != nil {
-		return err
-	}
-	return nil
+// DefaultGenesisState default genesis state
+func DefaultGenesisState(denom string) *GenesisState {
+	return NewGenesisState(DefaultParams(denom))
+}
+
+// ValidateGenesis does basic validation on genesis state
+func ValidateGenesis(gs *GenesisState) error {
+	return gs.Params.ValidateBasic()
 }

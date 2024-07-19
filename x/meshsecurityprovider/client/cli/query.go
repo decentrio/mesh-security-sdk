@@ -1,51 +1,56 @@
 package cli
 
 import (
-	"context"
 	"fmt"
+	"strings"
 
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/cosmos/cosmos-sdk/version"
 
-	"github.com/osmosis-labs/mesh-security-sdk/x/meshsecurityprovider/types"
+	"github.com/osmosis-labs/mesh-security-sdk/x/meshsecurity/types"
 )
 
-// GetQueryCmd returns the cli query commands for this module
 func GetQueryCmd() *cobra.Command {
-	meshsecurityproviderQueryCmd := &cobra.Command{
+	queryCmd := &cobra.Command{
 		Use:                        types.ModuleName,
-		Short:                      fmt.Sprintf("Querying commands for the %s module", types.ModuleName),
+		Short:                      "Querying commands for the mesh security module",
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 		RunE:                       client.ValidateCmd,
+		SilenceUsage:               true,
 	}
-
-	meshsecurityproviderQueryCmd.AddCommand(
+	queryCmd.AddCommand(
 		GetCmdQueryParams(),
 	)
-
-	return meshsecurityproviderQueryCmd
+	return queryCmd
 }
 
-
-// GetCmdQueryParams implements a command to return the current parameters.
+// GetCmdQueryParams implements the params query command.
 func GetCmdQueryParams() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "params",
-		Short: "Query the current meshsecurityprovider module parameters",
 		Args:  cobra.NoArgs,
-		RunE: func(cmd *cobra.Command, _ []string) error {
+		Short: "Query the current mesh-security parameters information",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Query values set as mesh-security parameters.
+
+Example:
+$ %s query meshsecurity params
+`,
+				version.AppName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
 			queryClient := types.NewQueryClient(clientCtx)
 
-			params := &types.ParamsRequest{}
-
-			res, err := queryClient.Params(context.Background(), params)
+			res, err := queryClient.Params(cmd.Context(), &types.QueryParamsRequest{})
 			if err != nil {
 				return err
 			}

@@ -1,36 +1,29 @@
 package types
 
-import (
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
-)
+import sdk "github.com/cosmos/cosmos-sdk/types"
 
-// Parameter store keys.
-var (
-	KeyParamField = []byte("TODO: CHANGE ME")
-)
-
-// ParamTable for meshsecurityprovider module.
-func ParamKeyTable() paramtypes.KeyTable {
-	return paramtypes.NewKeyTable().RegisterParamSet(&Params{})
+// DefaultParams returns default mesh-security parameters
+func DefaultParams(denom string) Params {
+	return Params{ // todo: revisit and set proper defaults
+		TimeoutPeriod: 60,
+	}
 }
 
-func NewParams() Params {
-	return Params{}
-}
-
-// DefaultParams are the default meshsecurityprovider module parameters.
-func DefaultParams() Params {
-	return Params{}
-}
-
-// Validate validates params.
-func (p Params) Validate() error {
+// ValidateBasic performs basic validation on mesh-security parameters.
+func (p Params) ValidateBasic() error {
+	if p.TimeoutPeriod <= 0 {
+		return ErrInvalid.Wrap("empty max gas end-blocker setting")
+	}
+	if p.VaultContractAddress == "" {
+		return ErrInvalid.Wrap("vault contract address cannot be empty")
+	}
 	return nil
 }
 
-// Implements params.ParamSet.
-func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
-	return paramtypes.ParamSetPairs{
-		// paramtypes.NewParamSetPair(KeyParamField, &p.Field, validateFn),
+func (p Params) GetVaultContractAddress() sdk.AccAddress {
+	vaultContractAddress, err := sdk.AccAddressFromBech32(p.VaultContractAddress)
+	if err != nil {
+		panic("params error: VaultContractAddress")
 	}
+	return vaultContractAddress
 }
