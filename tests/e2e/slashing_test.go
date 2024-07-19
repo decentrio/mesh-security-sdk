@@ -1,13 +1,14 @@
 package e2e
 
 import (
-	"cosmossdk.io/math"
 	"encoding/base64"
 	"fmt"
+	"testing"
+
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestSlashingScenario1(t *testing.T) {
@@ -91,6 +92,7 @@ func TestSlashingScenario1(t *testing.T) {
 	// Assert that the validator's stake has been slashed
 	// and that the validator has been jailed
 	validator1, found = x.ConsumerApp.StakingKeeper.GetValidator(ctx, myExtValidator1)
+	require.True(t, found)
 	require.True(t, validator1.IsJailed())
 	require.Equal(t, validator1.GetTokens(), sdk.NewInt(41_400_000)) // 10% slash
 
@@ -108,6 +110,7 @@ func TestSlashingScenario1(t *testing.T) {
 	require.Equal(t, 66_000_001, providerCli.QuerySlashableAmount())
 	// Check new free collateral
 	require.Equal(t, 1, providerCli.QueryVaultFreeBalance()) // 190 - max(33, 190) = 190 - 190 = 0
+	require.Equal(t, 1, 2)
 }
 
 func TestSlashingScenario2(t *testing.T) {
@@ -178,6 +181,7 @@ func TestSlashingScenario2(t *testing.T) {
 	// Assert that the validator's stake has been slashed
 	// and that the validator has been jailed
 	validator1, found = x.ConsumerApp.StakingKeeper.GetValidator(ctx, myExtValidator1)
+	require.True(t, found)
 	require.True(t, validator1.IsJailed())
 	require.Equal(t, validator1.GetTokens(), sdk.NewInt(81_900_000)) // 10% slash
 
@@ -265,6 +269,7 @@ func TestSlashingScenario3(t *testing.T) {
 	// Assert that the validator's stake has been slashed
 	// and that the validator has been jailed
 	validator1, found = x.ConsumerApp.StakingKeeper.GetValidator(ctx, myExtValidator1)
+	require.True(t, found)
 	require.True(t, validator1.IsJailed())
 	require.Equal(t, validator1.GetTokens(), sdk.NewInt(61_700_000)) // 10% slash (plus 50_000 rounding)
 

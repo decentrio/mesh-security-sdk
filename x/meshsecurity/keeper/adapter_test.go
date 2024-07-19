@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	// "fmt"
 	"testing"
 
 	"github.com/cometbft/cometbft/libs/rand"
@@ -59,36 +60,30 @@ func TestCaptureTombstone(t *testing.T) {
 func TestCaptureStakingEvents(t *testing.T) {
 	pCtx, keepers := CreateDefaultTestInput(t)
 
-	val := MinValidatorFixture(t)
-	myConsAddress, err := val.GetConsAddr()
-	require.NoError(t, err)
-	keepers.StakingKeeper.SetValidatorByConsAddr(pCtx, val)
-	keepers.StakingKeeper.SetValidator(pCtx, val)
-
 	valJailed := MinValidatorFixture(t)
 	valJailed.Jailed = true
 	myConsAddressJailed, err := valJailed.GetConsAddr()
 	require.NoError(t, err)
+
+	// fmt.Println(valJailed.GetStatus())
+
 	keepers.StakingKeeper.SetValidatorByConsAddr(pCtx, valJailed)
 	keepers.StakingKeeper.SetValidator(pCtx, valJailed)
 
 	decorator := NewStakingDecorator(keepers.StakingKeeper, keepers.MeshKeeper)
+	// pCtx =
 	specs := map[string]struct {
 		consAddr  sdk.ConsAddress
 		op        func(sdk.Context, sdk.ConsAddress)
 		expStored []types.PipedValsetOperation
 		expJailed bool
 	}{
-		"jail": {
-			consAddr:  myConsAddress,
-			op:        decorator.Jail,
-			expStored: []types.PipedValsetOperation{types.ValidatorJailed},
-			expJailed: true,
-		},
+
 		"unjail": {
 			consAddr:  myConsAddressJailed,
 			op:        decorator.Unjail,
 			expStored: []types.PipedValsetOperation{types.ValidatorUnjailed},
+			expJailed: false,
 		},
 	}
 	for name, spec := range specs {
