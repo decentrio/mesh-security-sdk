@@ -11,4 +11,6 @@ var (
 	ErrUnknown                              = errorsmod.Register(ModuleName, 4, "unknown")
 	ErrNoProposerChannelId                  = errorsmod.Register(ModuleName, 5, "no established meshsecurity channel")
 	ErrConsumerRewardDenomAlreadyRegistered = errorsmod.Register(ModuleName, 6, "consumer reward denom already registered")
+	ErrConsumerChainNotFound                = errorsmod.Register(ModuleName, 7, "consumer chain not found")
+	EventTypeExecuteConsumerChainSlash      = "execute_consumer_chain_slash"
 )

@@ -4,45 +4,113 @@
 
 ## Table of Contents
 
-- [osmosis/meshsecurity/v1beta1/meshsecurity.proto](#osmosis/meshsecurity/v1beta1/meshsecurity.proto)
-    - [Params](#osmosis.meshsecurity.v1beta1.Params)
-    - [VirtualStakingMaxCapInfo](#osmosis.meshsecurity.v1beta1.VirtualStakingMaxCapInfo)
+- [osmosis/meshsecurityprovider/v1beta1/delegate.proto](#osmosis/meshsecurityprovider/v1beta1/delegate.proto)
+    - [Depositors](#osmosis.meshsecurityprovider.v1beta1.Depositors)
+    - [Intermediary](#osmosis.meshsecurityprovider.v1beta1.Intermediary)
   
-- [osmosis/meshsecurity/v1beta1/genesis.proto](#osmosis/meshsecurity/v1beta1/genesis.proto)
-    - [GenesisState](#osmosis.meshsecurity.v1beta1.GenesisState)
+    - [BondStatus](#osmosis.meshsecurityprovider.v1beta1.BondStatus)
   
-- [osmosis/meshsecurity/v1beta1/query.proto](#osmosis/meshsecurity/v1beta1/query.proto)
-    - [QueryParamsRequest](#osmosis.meshsecurity.v1beta1.QueryParamsRequest)
-    - [QueryParamsResponse](#osmosis.meshsecurity.v1beta1.QueryParamsResponse)
-    - [QueryVirtualStakingMaxCapLimitRequest](#osmosis.meshsecurity.v1beta1.QueryVirtualStakingMaxCapLimitRequest)
-    - [QueryVirtualStakingMaxCapLimitResponse](#osmosis.meshsecurity.v1beta1.QueryVirtualStakingMaxCapLimitResponse)
-    - [QueryVirtualStakingMaxCapLimitsRequest](#osmosis.meshsecurity.v1beta1.QueryVirtualStakingMaxCapLimitsRequest)
-    - [QueryVirtualStakingMaxCapLimitsResponse](#osmosis.meshsecurity.v1beta1.QueryVirtualStakingMaxCapLimitsResponse)
+- [osmosis/meshsecurityprovider/v1beta1/params.proto](#osmosis/meshsecurityprovider/v1beta1/params.proto)
+    - [Params](#osmosis.meshsecurityprovider.v1beta1.Params)
   
-    - [Query](#osmosis.meshsecurity.v1beta1.Query)
+- [osmosis/meshsecurityprovider/v1beta1/genesis.proto](#osmosis/meshsecurityprovider/v1beta1/genesis.proto)
+    - [GenesisState](#osmosis.meshsecurityprovider.v1beta1.GenesisState)
   
-- [osmosis/meshsecurity/v1beta1/scheduler.proto](#osmosis/meshsecurity/v1beta1/scheduler.proto)
-    - [ScheduledWork](#osmosis.meshsecurity.v1beta1.ScheduledWork)
-    - [ValidatorAddress](#osmosis.meshsecurity.v1beta1.ValidatorAddress)
+- [osmosis/meshsecurityprovider/v1beta1/query.proto](#osmosis/meshsecurityprovider/v1beta1/query.proto)
+    - [QueryParamsRequest](#osmosis.meshsecurityprovider.v1beta1.QueryParamsRequest)
+    - [QueryParamsResponse](#osmosis.meshsecurityprovider.v1beta1.QueryParamsResponse)
   
-- [osmosis/meshsecurity/v1beta1/tx.proto](#osmosis/meshsecurity/v1beta1/tx.proto)
-    - [MsgSetVirtualStakingMaxCap](#osmosis.meshsecurity.v1beta1.MsgSetVirtualStakingMaxCap)
-    - [MsgSetVirtualStakingMaxCapResponse](#osmosis.meshsecurity.v1beta1.MsgSetVirtualStakingMaxCapResponse)
+    - [Query](#osmosis.meshsecurityprovider.v1beta1.Query)
   
-    - [Msg](#osmosis.meshsecurity.v1beta1.Msg)
+- [osmosis/meshsecurityprovider/v1beta1/tx.proto](#osmosis/meshsecurityprovider/v1beta1/tx.proto)
+    - [MsgDelegate](#osmosis.meshsecurityprovider.v1beta1.MsgDelegate)
+    - [MsgDelegateResponse](#osmosis.meshsecurityprovider.v1beta1.MsgDelegateResponse)
+    - [MsgSetConsumerCommissionRate](#osmosis.meshsecurityprovider.v1beta1.MsgSetConsumerCommissionRate)
+    - [MsgSetConsumerCommissionRateResponse](#osmosis.meshsecurityprovider.v1beta1.MsgSetConsumerCommissionRateResponse)
+    - [MsgUndelegate](#osmosis.meshsecurityprovider.v1beta1.MsgUndelegate)
+    - [MsgUndelegateResponse](#osmosis.meshsecurityprovider.v1beta1.MsgUndelegateResponse)
+  
+    - [Msg](#osmosis.meshsecurityprovider.v1beta1.Msg)
   
 - [Scalar Value Types](#scalar-value-types)
 
 
 
-<a name="osmosis/meshsecurity/v1beta1/meshsecurity.proto"></a>
+<a name="osmosis/meshsecurityprovider/v1beta1/delegate.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## osmosis/meshsecurity/v1beta1/meshsecurity.proto
+## osmosis/meshsecurityprovider/v1beta1/delegate.proto
 
 
 
-<a name="osmosis.meshsecurity.v1beta1.Params"></a>
+<a name="osmosis.meshsecurityprovider.v1beta1.Depositors"></a>
+
+### Depositors
+Params defines the parameters for the x/meshsecurity module.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `address` | [string](#string) |  |  |
+| `tokens` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
+
+
+
+
+
+
+<a name="osmosis.meshsecurityprovider.v1beta1.Intermediary"></a>
+
+### Intermediary
+vault-staker
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `consumer_validator` | [string](#string) |  |  |
+| `chain_id` | [string](#string) |  |  |
+| `contract_address` | [string](#string) |  |  |
+| `jailed` | [bool](#bool) |  |  |
+| `tombstoned` | [bool](#bool) |  |  |
+| `status` | [BondStatus](#osmosis.meshsecurityprovider.v1beta1.BondStatus) |  |  |
+| `token` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+
+<a name="osmosis.meshsecurityprovider.v1beta1.BondStatus"></a>
+
+### BondStatus
+BondStatus is the status of a validator.
+
+| Name | Number | Description |
+| ---- | ------ | ----------- |
+| BOND_STATUS_UNSPECIFIED | 0 | UNSPECIFIED defines an invalid validator status. |
+| BOND_STATUS_UNBONDED | 1 | UNBONDED defines a validator that is not bonded. |
+| BOND_STATUS_UNBONDING | 2 | UNBONDING defines a validator that is unbonding. |
+| BOND_STATUS_BONDED | 3 | BONDED defines a validator that is bonded. |
+
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="osmosis/meshsecurityprovider/v1beta1/params.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## osmosis/meshsecurityprovider/v1beta1/params.proto
+
+
+
+<a name="osmosis.meshsecurityprovider.v1beta1.Params"></a>
 
 ### Params
 Params defines the parameters for the x/meshsecurity module.
@@ -50,28 +118,8 @@ Params defines the parameters for the x/meshsecurity module.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `total_contracts_max_cap` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | TotalContractsMaxCap is the maximum that the sum of all contract max caps must not exceed |
-| `epoch_length` | [uint32](#uint32) |  | Epoch length is the number of blocks that defines an epoch |
-| `max_gas_end_blocker` | [uint32](#uint32) |  | MaxGasEndBlocker defines the maximum gas that can be spent in a contract sudo callback |
-| `infraction_time` | [uint64](#uint64) |  |  |
-
-
-
-
-
-
-<a name="osmosis.meshsecurity.v1beta1.VirtualStakingMaxCapInfo"></a>
-
-### VirtualStakingMaxCapInfo
-VirtualStakingMaxCapInfo stores info about
-virtual staking max cap
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `contract` | [string](#string) |  | Contract is the address of the contract |
-| `delegated` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | Delegated is the total amount currently delegated |
-| `cap` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | Cap is the current max cap limit |
+| `timeout_period` | [uint64](#uint64) |  | TimeoutPeriod has the unit time.Millisecond |
+| `vault_contract_address` | [string](#string) |  |  |
 
 
 
@@ -87,14 +135,14 @@ virtual staking max cap
 
 
 
-<a name="osmosis/meshsecurity/v1beta1/genesis.proto"></a>
+<a name="osmosis/meshsecurityprovider/v1beta1/genesis.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## osmosis/meshsecurity/v1beta1/genesis.proto
+## osmosis/meshsecurityprovider/v1beta1/genesis.proto
 
 
 
-<a name="osmosis.meshsecurity.v1beta1.GenesisState"></a>
+<a name="osmosis.meshsecurityprovider.v1beta1.GenesisState"></a>
 
 ### GenesisState
 GenesisState defines meshsecurity module's genesis state.
@@ -102,7 +150,7 @@ GenesisState defines meshsecurity module's genesis state.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `params` | [Params](#osmosis.meshsecurity.v1beta1.Params) |  |  |
+| `params` | [Params](#osmosis.meshsecurityprovider.v1beta1.Params) |  |  |
 
 
 
@@ -118,14 +166,14 @@ GenesisState defines meshsecurity module's genesis state.
 
 
 
-<a name="osmosis/meshsecurity/v1beta1/query.proto"></a>
+<a name="osmosis/meshsecurityprovider/v1beta1/query.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## osmosis/meshsecurity/v1beta1/query.proto
+## osmosis/meshsecurityprovider/v1beta1/query.proto
 
 
 
-<a name="osmosis.meshsecurity.v1beta1.QueryParamsRequest"></a>
+<a name="osmosis.meshsecurityprovider.v1beta1.QueryParamsRequest"></a>
 
 ### QueryParamsRequest
 QueryParamsRequest is the request type for the
@@ -136,7 +184,7 @@ Query/Params RPC method
 
 
 
-<a name="osmosis.meshsecurity.v1beta1.QueryParamsResponse"></a>
+<a name="osmosis.meshsecurityprovider.v1beta1.QueryParamsResponse"></a>
 
 ### QueryParamsResponse
 QueryParamsResponse is the response type for the
@@ -145,67 +193,7 @@ Query/Params RPC method
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `params` | [Params](#osmosis.meshsecurity.v1beta1.Params) |  |  |
-
-
-
-
-
-
-<a name="osmosis.meshsecurity.v1beta1.QueryVirtualStakingMaxCapLimitRequest"></a>
-
-### QueryVirtualStakingMaxCapLimitRequest
-QueryVirtualStakingMaxCapLimitRequest is the request type for the
-Query/VirtualStakingMaxCapLimit RPC method
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `address` | [string](#string) |  | Address is the address of the contract to query |
-
-
-
-
-
-
-<a name="osmosis.meshsecurity.v1beta1.QueryVirtualStakingMaxCapLimitResponse"></a>
-
-### QueryVirtualStakingMaxCapLimitResponse
-QueryVirtualStakingMaxCapLimitResponse is the response type for the
-Query/VirtualStakingMaxCapLimit RPC method
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `delegated` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
-| `cap` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
-
-
-
-
-
-
-<a name="osmosis.meshsecurity.v1beta1.QueryVirtualStakingMaxCapLimitsRequest"></a>
-
-### QueryVirtualStakingMaxCapLimitsRequest
-QueryVirtualStakingMaxCapLimitsRequest is the request type for the
-Query/VirtualStakingMaxCapLimits RPC method
-
-
-
-
-
-
-<a name="osmosis.meshsecurity.v1beta1.QueryVirtualStakingMaxCapLimitsResponse"></a>
-
-### QueryVirtualStakingMaxCapLimitsResponse
-QueryVirtualStakingMaxCapLimitsResponse is the response type for the
-Query/VirtualStakingMaxCapLimits RPC method
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `max_cap_infos` | [VirtualStakingMaxCapInfo](#osmosis.meshsecurity.v1beta1.VirtualStakingMaxCapInfo) | repeated |  |
+| `params` | [Params](#osmosis.meshsecurityprovider.v1beta1.Params) |  |  |
 
 
 
@@ -218,52 +206,101 @@ Query/VirtualStakingMaxCapLimits RPC method
  <!-- end HasExtensions -->
 
 
-<a name="osmosis.meshsecurity.v1beta1.Query"></a>
+<a name="osmosis.meshsecurityprovider.v1beta1.Query"></a>
 
 ### Query
 Query provides defines the gRPC querier service
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
-| `VirtualStakingMaxCapLimit` | [QueryVirtualStakingMaxCapLimitRequest](#osmosis.meshsecurity.v1beta1.QueryVirtualStakingMaxCapLimitRequest) | [QueryVirtualStakingMaxCapLimitResponse](#osmosis.meshsecurity.v1beta1.QueryVirtualStakingMaxCapLimitResponse) | VirtualStakingMaxCapLimit gets max cap limit for the given contract | GET|/osmosis/meshsecurity/v1beta1/max_cap_limit/{address}|
-| `VirtualStakingMaxCapLimits` | [QueryVirtualStakingMaxCapLimitsRequest](#osmosis.meshsecurity.v1beta1.QueryVirtualStakingMaxCapLimitsRequest) | [QueryVirtualStakingMaxCapLimitsResponse](#osmosis.meshsecurity.v1beta1.QueryVirtualStakingMaxCapLimitsResponse) | VirtualStakingMaxCapLimits gets max cap limits | GET|/osmosis/meshsecurity/v1beta1/max_cap_limits|
-| `Params` | [QueryParamsRequest](#osmosis.meshsecurity.v1beta1.QueryParamsRequest) | [QueryParamsResponse](#osmosis.meshsecurity.v1beta1.QueryParamsResponse) | Params queries the parameters of x/meshsecurity module. | GET|/osmosis/meshsecurity/v1beta1/params|
+| `Params` | [QueryParamsRequest](#osmosis.meshsecurityprovider.v1beta1.QueryParamsRequest) | [QueryParamsResponse](#osmosis.meshsecurityprovider.v1beta1.QueryParamsResponse) | Params queries the parameters of x/meshsecurity module. | GET|/osmosis/meshsecurityprovider/v1beta1/params|
 
  <!-- end services -->
 
 
 
-<a name="osmosis/meshsecurity/v1beta1/scheduler.proto"></a>
+<a name="osmosis/meshsecurityprovider/v1beta1/tx.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## osmosis/meshsecurity/v1beta1/scheduler.proto
+## osmosis/meshsecurityprovider/v1beta1/tx.proto
 
 
 
-<a name="osmosis.meshsecurity.v1beta1.ScheduledWork"></a>
+<a name="osmosis.meshsecurityprovider.v1beta1.MsgDelegate"></a>
 
-### ScheduledWork
+### MsgDelegate
 
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `repeat` | [bool](#bool) |  |  |
+| `delegator_address` | [string](#string) |  |  |
+| `validator_address` | [string](#string) |  |  |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
 
 
 
 
 
 
-<a name="osmosis.meshsecurity.v1beta1.ValidatorAddress"></a>
+<a name="osmosis.meshsecurityprovider.v1beta1.MsgDelegateResponse"></a>
 
-### ValidatorAddress
-ValidatorAddress payload data to be used with the scheduler
+### MsgDelegateResponse
+
+
+
+
+
+
+
+<a name="osmosis.meshsecurityprovider.v1beta1.MsgSetConsumerCommissionRate"></a>
+
+### MsgSetConsumerCommissionRate
+
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `address` | [string](#string) |  | Address is the ValAddress bech32 string |
+| `provider_addr` | [string](#string) |  |  |
+| `chain_id` | [string](#string) |  |  |
+| `rate` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="osmosis.meshsecurityprovider.v1beta1.MsgSetConsumerCommissionRateResponse"></a>
+
+### MsgSetConsumerCommissionRateResponse
+
+
+
+
+
+
+
+<a name="osmosis.meshsecurityprovider.v1beta1.MsgUndelegate"></a>
+
+### MsgUndelegate
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `delegator_address` | [string](#string) |  |  |
+| `validator_address` | [string](#string) |  |  |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+
+
+
+
+
+
+<a name="osmosis.meshsecurityprovider.v1beta1.MsgUndelegateResponse"></a>
+
+### MsgUndelegateResponse
+MsgUndelegateResponse defines the Msg/Undelegate response type.
 
 
 
@@ -275,59 +312,17 @@ ValidatorAddress payload data to be used with the scheduler
 
  <!-- end HasExtensions -->
 
- <!-- end services -->
 
-
-
-<a name="osmosis/meshsecurity/v1beta1/tx.proto"></a>
-<p align="right"><a href="#top">Top</a></p>
-
-## osmosis/meshsecurity/v1beta1/tx.proto
-
-
-
-<a name="osmosis.meshsecurity.v1beta1.MsgSetVirtualStakingMaxCap"></a>
-
-### MsgSetVirtualStakingMaxCap
-MsgSetVirtualStakingMaxCap creates or updates a maximum cap limit for virtual
-staking coins to the given contract.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `authority` | [string](#string) |  | Authority is the address that controls the module (defaults to x/gov unless overwritten). |
-| `contract` | [string](#string) |  | Contract is the address of the smart contract that is given permission do virtual staking which includes minting and burning staking tokens. |
-| `max_cap` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | MaxCap is the limit up this the virtual tokens can be minted. |
-
-
-
-
-
-
-<a name="osmosis.meshsecurity.v1beta1.MsgSetVirtualStakingMaxCapResponse"></a>
-
-### MsgSetVirtualStakingMaxCapResponse
-MsgSetVirtualStakingMaxCap returns result data.
-
-
-
-
-
- <!-- end messages -->
-
- <!-- end enums -->
-
- <!-- end HasExtensions -->
-
-
-<a name="osmosis.meshsecurity.v1beta1.Msg"></a>
+<a name="osmosis.meshsecurityprovider.v1beta1.Msg"></a>
 
 ### Msg
-Msg defines the wasm Msg service.
+
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
-| `SetVirtualStakingMaxCap` | [MsgSetVirtualStakingMaxCap](#osmosis.meshsecurity.v1beta1.MsgSetVirtualStakingMaxCap) | [MsgSetVirtualStakingMaxCapResponse](#osmosis.meshsecurity.v1beta1.MsgSetVirtualStakingMaxCapResponse) | SetVirtualStakingMaxCap creates or updates a maximum cap limit for virtual staking coins | |
+| `Delegate` | [MsgDelegate](#osmosis.meshsecurityprovider.v1beta1.MsgDelegate) | [MsgDelegateResponse](#osmosis.meshsecurityprovider.v1beta1.MsgDelegateResponse) |  | |
+| `Undelegate` | [MsgUndelegate](#osmosis.meshsecurityprovider.v1beta1.MsgUndelegate) | [MsgUndelegateResponse](#osmosis.meshsecurityprovider.v1beta1.MsgUndelegateResponse) |  | |
+| `SetConsumerCommissionRate` | [MsgSetConsumerCommissionRate](#osmosis.meshsecurityprovider.v1beta1.MsgSetConsumerCommissionRate) | [MsgSetConsumerCommissionRateResponse](#osmosis.meshsecurityprovider.v1beta1.MsgSetConsumerCommissionRateResponse) |  | |
 
  <!-- end services -->
 

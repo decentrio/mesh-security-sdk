@@ -21,7 +21,9 @@ const (
 	AttributeKeySchedulerRepeat      = "repeat"
 	AttributeKeySchedulerExecError   = "error"
 	AttributeKeyValidator            = "validator"
+	AttributeConsumerValidator       = "consumer_validator"
 	AttributeKeyDelegator            = "delegator"
+	AttributeInfractionHeight        = "infraction_height"
 )
 
 // EmitSchedulerExecutionEvent emits an event signalling a successful or failed scheduler execution and including the error

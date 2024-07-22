@@ -25,13 +25,20 @@ const (
 
 var (
 	// ParamsKey is the prefix for the module parameters
-	ParamsKey                     = []byte{0x1}
+	ParamsKey                     = []byte{0x10}
 	MaxCapLimitKeyPrefix          = []byte{0x2}
 	TotalDelegatedAmountKeyPrefix = []byte{0x3}
 	SchedulerKeyPrefix            = []byte{0x4}
 
-	PipedValsetPrefix      = []byte{0x5}
-	ProviderChannelByteKey = []byte{0x6}
+	PipedValsetPrefix             = []byte{0x5}
+	ProviderChannelByteKey        = []byte{0x6}
+	DepositorsKeyPrefix           = []byte{0x7}
+	IntermediaryKeyPrefix         = []byte{0x8}
+	ContractWithNativeDenomPrefix = []byte{0x9}
+	ChainToChannelBytePrefix      = []byte{0x11}
+	ChannelToChainBytePrefix      = []byte{0x12}
+	ChainToClientBytePrefix       = []byte{0x13}
+	InitChainHeightBytePrefix     = []byte{0x14}
 )
 
 // BuildMaxCapLimitKey build max cap limit store key
@@ -83,4 +90,32 @@ func BuildPipedValsetOpKey(op cptypes.PipedValsetOperation, val sdk.ValAddress) 
 // ProviderChannelKey returns the key for storing channelID of the provider chain
 func ProviderChannelKey() []byte {
 	return ProviderChannelByteKey
+}
+
+func DepositorsKey(del string) []byte {
+	return append(DepositorsKeyPrefix, []byte(del)...)
+}
+
+func IntermediaryKey(denom string) []byte {
+	return append(IntermediaryKeyPrefix, []byte(denom)...)
+}
+
+func ContractWithNativeDenomKey(denom string) []byte {
+	return append(ContractWithNativeDenomPrefix, []byte(denom)...)
+}
+
+func ChainToChannelKey(chainID string) []byte {
+	return append(ChainToChannelBytePrefix, []byte(chainID)...)
+}
+
+func ChannelToChainKey(channelID string) []byte {
+	return append(ChannelToChainBytePrefix, []byte(channelID)...)
+}
+
+func ChainToClientKey(chainID string) []byte {
+	return append(ChainToClientBytePrefix, []byte(chainID)...)
+}
+
+func InitChainHeightKey(chainID string) []byte {
+	return append(InitChainHeightBytePrefix, []byte(chainID)...)
 }

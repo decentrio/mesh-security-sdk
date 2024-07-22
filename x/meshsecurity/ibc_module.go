@@ -1,13 +1,13 @@
 package meshsecurity
 
 import (
-	// "fmt"
+	"fmt"
 	"strings"
 	// "strconv"
 
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
-	// porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
-	// host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
+	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
+	host "github.com/cosmos/ibc-go/v7/modules/core/24-host"
 	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
 
 	errorsmod "cosmossdk.io/errors"
@@ -17,8 +17,8 @@ import (
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	// transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 
-	ctypes "github.com/osmosis-labs/mesh-security-sdk/x/meshsecurity/types"
-	"github.com/osmosis-labs/mesh-security-sdk/x/types"
+	"github.com/osmosis-labs/mesh-security-sdk/x/meshsecurity/keeper"
+	cptypes "github.com/osmosis-labs/mesh-security-sdk/x/types"
 )
 
 // OnChanOpenInit implements the IBCModule interface
@@ -34,7 +34,7 @@ func (am AppModule) OnChanOpenInit(
 	version string,
 ) (string, error) {
 	if strings.TrimSpace(version) == "" {
-		version = types.Version
+		version = cptypes.Version
 	}
 
 	return version, nil
@@ -51,7 +51,32 @@ func (am AppModule) OnChanOpenTry(
 	counterparty channeltypes.Counterparty,
 	counterpartyVersion string,
 ) (string, error) {
-	return "", errorsmod.Wrap(types.ErrInvalidChannelFlow, "channel handshake must be initiated by consumer chain")
+	if counterparty.PortId != cptypes.ConsumerPortID {
+		return "", errorsmod.Wrapf(porttypes.ErrInvalidPort,
+			"invalid counterparty port: %s, expected %s", counterparty.PortId, cptypes.ConsumerPortID)
+	}
+
+	// ensure the counter party version matches the expected version
+	if counterpartyVersion != cptypes.Version {
+		return "", errorsmod.Wrapf(
+			cptypes.ErrInvalidVersion, "invalid counterparty version: got: %s, expected %s",
+			counterpartyVersion, cptypes.Version)
+	}
+
+	// Claim channel capability
+	if err := am.k.ClaimCapability(
+		ctx, chanCap, host.ChannelCapabilityPath(portID, channelID),
+	); err != nil {
+		return "", err
+	}
+
+	if err := am.k.VerifyConsumerChain(
+		ctx, channelID, connectionHops,
+	); err != nil {
+		return "", err
+	}
+	// TODO: ConsumerRewards
+	return "", nil
 }
 
 // OnChanOpenAck implements the IBCModule interface
@@ -72,7 +97,7 @@ func (am AppModule) OnChanOpenConfirm(
 	portID,
 	channelID string,
 ) error {
-	return errorsmod.Wrap(types.ErrInvalidChannelFlow, "channel handshake must be initiated by consumer chain")
+	return errorsmod.Wrap(cptypes.ErrInvalidChannelFlow, "channel handshake must be initiated by consumer chain")
 }
 
 // OnChanCloseInit implements the IBCModule interface
@@ -105,11 +130,97 @@ func (am AppModule) OnRecvPacket(
 	packet channeltypes.Packet,
 	_ sdk.AccAddress,
 ) ibcexported.Acknowledgement {
+	logger := keeper.ModuleLogger(ctx)
 	ack := channeltypes.NewResultAcknowledgement([]byte{byte(1)})
-	// was successfully decoded
-	if ack.Success() {
-		//TODO: OnRecvPacket
+
+	var ackErr error
+	consumerPacket, err := UnmarshalConsumerPacket(packet)
+	if err != nil {
+		ackErr = errorsmod.Wrapf(sdkerrors.ErrInvalidType, "cannot unmarshal ConsumerPacket data")
+		logger.Error(fmt.Sprintf("%s sequence %d", ackErr.Error(), packet.Sequence))
+		ack = channeltypes.NewErrorAcknowledgement(ackErr)
 	}
+
+	eventAttributes := []sdk.Attribute{
+		sdk.NewAttribute(sdk.AttributeKeyModule, cptypes.ModuleName),
+	}
+
+	if ack.Success() {
+		var err error
+
+		switch consumerPacket.Type {
+		case cptypes.PipedValsetOperation_VALIDATOR_BONDED:
+			var ackResult cptypes.PacketAckResult
+			data := consumerPacket.GetSchedulePacketData()
+			ackResult, err = am.k.OnRecvBondedPacket(ctx, packet, data)
+			if err == nil {
+				ack = channeltypes.NewResultAcknowledgement(ackResult)
+			}
+
+		case cptypes.PipedValsetOperation_VALIDATOR_UNBONDED:
+			var ackResult cptypes.PacketAckResult
+			data := consumerPacket.GetSchedulePacketData()
+			ackResult, err = am.k.OnRecvUnbondedPacket(ctx, packet, data)
+			if err == nil {
+				ack = channeltypes.NewResultAcknowledgement(ackResult)
+			}
+		case cptypes.PipedValsetOperation_VALIDATOR_JAILED:
+			var ackResult cptypes.PacketAckResult
+			data := consumerPacket.GetSchedulePacketData()
+			ackResult, err = am.k.OnRecvJailedPacket(ctx, packet, data)
+			if err == nil {
+				ack = channeltypes.NewResultAcknowledgement(ackResult)
+			}
+		case cptypes.PipedValsetOperation_VALIDATOR_TOMBSTONED:
+			var ackResult cptypes.PacketAckResult
+			data := consumerPacket.GetSchedulePacketData()
+			ackResult, err = am.k.OnRecvTombstonedPacket(ctx, packet, data)
+			if err == nil {
+				ack = channeltypes.NewResultAcknowledgement(ackResult)
+			}
+		case cptypes.PipedValsetOperation_VALIDATOR_UNJAILED:
+			var ackResult cptypes.PacketAckResult
+			data := consumerPacket.GetSchedulePacketData()
+			ackResult, err = am.k.OnRecvUnjailedPacket(ctx, packet, data)
+			if err == nil {
+				ack = channeltypes.NewResultAcknowledgement(ackResult)
+			}
+		case cptypes.PipedValsetOperation_VALIDATOR_MODIFIED:
+			var ackResult cptypes.PacketAckResult
+			data := consumerPacket.GetSchedulePacketData()
+			ackResult, err = am.k.OnRecvModifiedPacket(ctx, packet, data)
+			if err == nil {
+				ack = channeltypes.NewResultAcknowledgement(ackResult)
+			}
+		case cptypes.PipedValsetOperation_VALIDATOR_SLASHED:
+			var ackResult cptypes.PacketAckResult
+			data := consumerPacket.GetSlashPacketData()
+			ackResult, err = am.k.OnRecvSlashPacket(ctx, packet, *data)
+			if err == nil {
+				ack = channeltypes.NewResultAcknowledgement(ackResult)
+			}
+		default:
+			err = fmt.Errorf("invalid consumer packet type: %q", consumerPacket.Type)
+		}
+
+		if err != nil {
+			ack = channeltypes.NewErrorAcknowledgement(err)
+			ackErr = err
+			logger.Error(fmt.Sprintf("%s sequence %d", ackErr.Error(), packet.Sequence))
+		}
+	}
+
+	eventAttributes = append(eventAttributes, sdk.NewAttribute(cptypes.AttributeKeyAckSuccess, fmt.Sprintf("%t", ack.Success())))
+	if ackErr != nil {
+		eventAttributes = append(eventAttributes, sdk.NewAttribute(cptypes.AttributeKeyAckError, ackErr.Error()))
+	}
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			cptypes.EventTypePacket,
+			eventAttributes...,
+		),
+	)
 
 	// NOTE: acknowledgement will be written synchronously during IBC handler execution.
 	return ack
@@ -123,7 +234,7 @@ func (am AppModule) OnAcknowledgementPacket(
 	_ sdk.AccAddress,
 ) error {
 	var ack channeltypes.Acknowledgement
-	if err := types.ModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
+	if err := cptypes.ModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
 		return errorsmod.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal consumer packet acknowledgement: %v", err)
 	}
 
@@ -133,24 +244,24 @@ func (am AppModule) OnAcknowledgementPacket(
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
-			types.EventTypePacket,
-			sdk.NewAttribute(sdk.AttributeKeyModule, ctypes.ModuleName),
-			sdk.NewAttribute(types.AttributeKeyAck, ack.String()),
+			cptypes.EventTypePacket,
+			sdk.NewAttribute(sdk.AttributeKeyModule, cptypes.ModuleName),
+			sdk.NewAttribute(cptypes.AttributeKeyAck, ack.String()),
 		),
 	)
 	switch resp := ack.Response.(type) {
 	case *channeltypes.Acknowledgement_Result:
 		ctx.EventManager().EmitEvent(
 			sdk.NewEvent(
-				types.EventTypePacket,
-				sdk.NewAttribute(types.AttributeKeyAckSuccess, string(resp.Result)),
+				cptypes.EventTypePacket,
+				sdk.NewAttribute(cptypes.AttributeKeyAckSuccess, string(resp.Result)),
 			),
 		)
 	case *channeltypes.Acknowledgement_Error:
 		ctx.EventManager().EmitEvent(
 			sdk.NewEvent(
-				types.EventTypePacket,
-				sdk.NewAttribute(types.AttributeKeyAckError, resp.Error),
+				cptypes.EventTypePacket,
+				sdk.NewAttribute(cptypes.AttributeKeyAckError, resp.Error),
 			),
 		)
 	}
@@ -163,5 +274,19 @@ func (am AppModule) OnTimeoutPacket(
 	packet channeltypes.Packet,
 	_ sdk.AccAddress,
 ) error {
+	if err := am.k.OnTimeoutPacket(ctx, packet); err != nil {
+		return err
+	}
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			cptypes.EventTypeTimeout,
+			sdk.NewAttribute(sdk.AttributeKeyModule, cptypes.ModuleName),
+		),
+	)
 	return nil
+}
+
+func UnmarshalConsumerPacket(packet channeltypes.Packet) (consumerPacket cptypes.ConsumerPacketData, err error) {
+	return cptypes.UnmarshalConsumerPacketData(packet.GetData())
 }

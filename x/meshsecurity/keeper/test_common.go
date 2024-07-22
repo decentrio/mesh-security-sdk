@@ -279,6 +279,8 @@ func CreateDefaultTestInput(t testing.TB, opts ...Option) (sdk.Context, TestKeep
 		wasmKeeper,
 		scopedWasmKeeper,
 		ibcKeeper.ChannelKeeper,
+		ibcKeeper.ConnectionKeeper,
+		ibcKeeper.ClientKeeper,
 		authority,
 		opts...,
 	)

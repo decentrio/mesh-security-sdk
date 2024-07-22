@@ -38,4 +38,8 @@ message Params {
   uint32 max_gas_end_blocker = 3;
   
   uint64 infraction_time = 4;
+
+  uint64 timeout_period = 5; 
+
+  string vault_contract_address = 6;
 }

@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
 
@@ -59,4 +60,66 @@ func (m msgServer) SetVirtualStakingMaxCap(goCtx context.Context, req *types.Msg
 		return nil, errorsmod.Wrap(err, "schedule one shot rebalance task")
 	}
 	return &types.MsgSetVirtualStakingMaxCapResponse{}, nil
+}
+
+func (m msgServer) Delegate(goCtx context.Context, msg *types.MsgDelegate) (*types.MsgDelegateResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	err := msg.Amount.Validate()
+	if err != nil {
+		return nil, fmt.Errorf("failed to delegate; Validate fail")
+	}
+	denomDelegate := msg.Amount.Denom
+
+	vaultAdress := sdk.AccAddress(m.k.GetParams(ctx).GetVaultContractAddress())
+	delegatorAddress, err := sdk.AccAddressFromBech32(msg.DelegatorAddress)
+	if err != nil {
+		return nil, err
+	}
+
+	balance := m.k.bank.GetBalance(ctx, delegatorAddress, denomDelegate)
+
+	if balance.IsLT(msg.Amount) {
+		return nil, fmt.Errorf("failed to delegate; %s is smaller than %s", balance, msg.Amount)
+	}
+
+	if err := m.k.bank.SendCoins(ctx, delegatorAddress, vaultAdress, sdk.NewCoins([]sdk.Coin{msg.Amount}...)); err != nil {
+		return nil, err
+	}
+
+	bondDenom := m.k.Staking.BondDenom(ctx)
+	if denomDelegate == bondDenom {
+		// local stake
+		err = m.k.LocalStake(ctx, msg.Amount, msg.ValidatorAddress)
+		if err != nil {
+			// if fail refunds
+			m.k.bank.SendCoins(ctx, vaultAdress, delegatorAddress, sdk.NewCoins([]sdk.Coin{msg.Amount}...))
+			return nil, err
+		}
+	} else {
+		// remote stake
+		err := m.k.RemoteStake(ctx, denomDelegate, msg.Amount)
+		if err != nil {
+			// if fail refunds
+			m.k.bank.SendCoins(ctx, vaultAdress, delegatorAddress, sdk.NewCoins([]sdk.Coin{msg.Amount}...))
+			return nil, err
+		}
+	}
+
+	depositors, found := m.k.GetDepositors(ctx, msg.DelegatorAddress)
+	if !found {
+		depositors = types.NewDepositors(msg.DelegatorAddress, []sdk.Coin{msg.Amount})
+	} else {
+		depositors.Tokens = depositors.Tokens.Add(msg.Amount)
+	}
+	err = m.k.SetDepositors(ctx, depositors)
+	if err != nil {
+		return nil, err
+	}
+
+	return &types.MsgDelegateResponse{}, nil
+}
+
+func (m msgServer) Undelegate(goCtx context.Context, msg *types.MsgUndelegate) (*types.MsgUndelegateResponse, error) {
+	return &types.MsgUndelegateResponse{}, nil
 }

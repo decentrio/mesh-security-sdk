@@ -14,14 +14,16 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
 
 	"github.com/osmosis-labs/mesh-security-sdk/x/meshsecurity/client/cli"
 	"github.com/osmosis-labs/mesh-security-sdk/x/meshsecurity/keeper"
 	"github.com/osmosis-labs/mesh-security-sdk/x/meshsecurity/types"
 )
 
-// ConsensusVersion defines the module's consensus version.
-const ConsensusVersion = 1
+var (
+	_ porttypes.IBCModule = AppModule{}
+)
 
 var (
 	_ module.AppModuleBasic = AppModuleBasic{}
@@ -134,11 +136,6 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 // QuerierRoute returns the bank module's querier route name.
 func (AppModule) QuerierRoute() string {
 	return types.RouterKey
-}
-
-// ConsensusVersion implements AppModule/ConsensusVersion.
-func (AppModule) ConsensusVersion() uint64 {
-	return ConsensusVersion
 }
 
 // BeginBlock executed before every block

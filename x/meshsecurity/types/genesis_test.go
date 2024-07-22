@@ -3,9 +3,11 @@ package types
 import (
 	"testing"
 
+	"cosmossdk.io/math"
+	"github.com/cometbft/cometbft/libs/rand"
 	"github.com/stretchr/testify/assert"
 
-	"cosmossdk.io/math"
+	// "cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -25,6 +27,8 @@ func TestValidateGenesis(t *testing.T) {
 					TotalContractsMaxCap: sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(15_000_000_000)),
 					EpochLength:          2_000,
 					MaxGasEndBlocker:     600_000,
+					TimeoutPeriod:        60,
+					VaultContractAddress: sdk.AccAddress(rand.Bytes(32)).String(),
 				},
 			},
 			expErr: false,
@@ -35,6 +39,8 @@ func TestValidateGenesis(t *testing.T) {
 					TotalContractsMaxCap: sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(1_000_000)),
 					EpochLength:          20,
 					MaxGasEndBlocker:     10_000,
+					TimeoutPeriod:        60,
+					VaultContractAddress: sdk.AccAddress(rand.Bytes(32)).String(),
 				},
 			},
 			expErr: false,

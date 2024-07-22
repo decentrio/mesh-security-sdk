@@ -5,8 +5,8 @@ import (
 
 	// stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
-	"github.com/osmosis-labs/mesh-security-sdk/x/meshsecurityprovider/contract"
-	"github.com/osmosis-labs/mesh-security-sdk/x/meshsecurityprovider/types"
+	"github.com/osmosis-labs/mesh-security-sdk/x/meshsecurity/contract"
+	"github.com/osmosis-labs/mesh-security-sdk/x/meshsecurity/types"
 )
 
 func (k Keeper) LocalStake(ctx sdk.Context, token sdk.Coin, valAddr string) error {
@@ -25,7 +25,7 @@ func (k Keeper) LocalStake(ctx sdk.Context, token sdk.Coin, valAddr string) erro
 	contractAddr := k.GetContractWithNativeDenom(ctx, token.Denom)
 	inter, found := k.GetIntermediary(ctx, token.Denom)
 	if !found {
-		inter = types.NewIntermediary(valAddr, ctx.ChainID(), contractAddr.String(), false, false, types.Bonded, &token)
+		inter = types.NewIntermediary(valAddr, ctx.ChainID(), contractAddr.String(), false, false, types.Unspecified, &token)
 	} else {
 		newAmout := inter.Token.Add(token)
 		inter.Token = &newAmout
@@ -53,7 +53,7 @@ func (k Keeper) RemoteStake(ctx sdk.Context, denomDelegate string, token sdk.Coi
 	// TODO: validator addresss on consumer chain
 	inter, found := k.GetIntermediary(ctx, token.Denom)
 	if !found {
-		inter = types.NewIntermediary("", ctx.ChainID(), contractAddr.String(), false, false, types.Bonded, &token)
+		inter = types.NewIntermediary("", ctx.ChainID(), contractAddr.String(), false, false, types.Unspecified, &token)
 	} else {
 		newAmout := inter.Token.Add(token)
 		inter.Token = &newAmout

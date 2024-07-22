@@ -1,10 +1,12 @@
 package types
 
 import (
-	errorsmod "cosmossdk.io/errors"
-	"cosmossdk.io/math"
 	"time"
 
+	errorsmod "cosmossdk.io/errors"
+	"cosmossdk.io/math"
+
+	"github.com/cometbft/cometbft/libs/rand"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -15,6 +17,8 @@ func DefaultParams(denom string) Params {
 		EpochLength:          1_000,
 		MaxGasEndBlocker:     500_000,
 		InfractionTime:       0,
+		TimeoutPeriod:        60,
+		VaultContractAddress: sdk.AccAddress(rand.Bytes(32)).String(),
 	}
 }
 
@@ -29,6 +33,12 @@ func (p Params) ValidateBasic() error {
 	if p.MaxGasEndBlocker == 0 {
 		return ErrInvalid.Wrap("empty max gas end-blocker setting")
 	}
+	if p.TimeoutPeriod <= 0 {
+		return ErrInvalid.Wrap("empty max gas end-blocker setting")
+	}
+	if p.VaultContractAddress == "" {
+		return ErrInvalid.Wrap("vault contract address cannot be empty")
+	}
 	return nil
 }
 
@@ -36,4 +46,12 @@ func (p Params) ValidateBasic() error {
 func (p Params) GetTimeoutPeriod() time.Duration {
 	// TODO: add TimeoutPeriod for params
 	return time.Duration(5) * time.Microsecond
+}
+
+func (p Params) GetVaultContractAddress() sdk.AccAddress {
+	vaultContractAddress, err := sdk.AccAddressFromBech32(p.VaultContractAddress)
+	if err != nil {
+		panic("params error: VaultContractAddress")
+	}
+	return vaultContractAddress
 }

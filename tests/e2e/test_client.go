@@ -95,6 +95,8 @@ func (p *TestProviderClient) BootstrapContracts(connId, portID string) ProviderC
 	nativeInitMsg := []byte(fmt.Sprintf(`{"denom": %q, "proxy_code_id": %d, "slash_ratio_dsign": %q, "slash_ratio_offline": %q }`, localTokenDenom, proxyCodeID, localSlashRatioDoubleSign, localSlashRatioOffline))
 	initMsg := []byte(fmt.Sprintf(`{"denom": %q, "local_staking": {"code_id": %d, "msg": %q}}`, localTokenDenom, nativeStakingCodeID, base64.StdEncoding.EncodeToString(nativeInitMsg)))
 	vaultContract := InstantiateContract(p.t, p.chain, vaultCodeID, initMsg)
+	fmt.Println()
+	fmt.Println("vau:", string(initMsg))
 
 	// external staking
 	extStakingCodeID := p.chain.StoreCodeFile(buildPathToWasm("mesh_external_staking.wasm")).CodeID
@@ -102,6 +104,7 @@ func (p *TestProviderClient) BootstrapContracts(connId, portID string) ProviderC
 		`{"remote_contact": {"connection_id":%q, "port_id":%q}, "denom": %q, "vault": %q, "unbonding_period": %d, "rewards_denom": %q, "slash_ratio": { "double_sign": %q, "offline": %q }  }`,
 		connId, portID, localTokenDenom, vaultContract.String(), unbondingPeriod, rewardTokenDenom, extSlashRatioDoubleSign, extSlashRatioOffline))
 	externalStakingContract := InstantiateContract(p.t, p.chain, extStakingCodeID, initMsg)
+	fmt.Println("extanal:", string(initMsg))
 
 	r := ProviderContracts{
 		vault:           vaultContract,

@@ -464,6 +464,8 @@ func NewMeshApp(
 		&app.WasmKeeper, // ensure this is a pointer as we instantiate the keeper a bit later
 		scopedMeshKeeper,
 		app.IBCKeeper.ChannelKeeper,
+		app.IBCKeeper.ConnectionKeeper,
+		app.IBCKeeper.ClientKeeper,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 

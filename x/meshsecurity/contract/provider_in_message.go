@@ -3,7 +3,7 @@ package contract
 import wasmvmtypes "github.com/CosmWasm/wasmvm/types"
 
 type (
-	SudoMsg struct {
+	SudoMsgProvider struct {
 		VaultSudoMsg *StakeMsg `json:"vault,omitempty"`
 	}
 

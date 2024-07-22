@@ -136,6 +136,7 @@ func (a AuthSourceFn) IsAuthorized(ctx sdk.Context, contractAddr sdk.AccAddress)
 // abstract keeper
 type maxCapSource interface {
 	HasMaxCapLimit(ctx sdk.Context, actor sdk.AccAddress) bool
+	HasContractVault(ctx sdk.Context, actor sdk.AccAddress) bool
 }
 
 // NewIntegrityHandler prevents any contract with max cap set to use staking
@@ -150,7 +151,8 @@ func NewIntegrityHandler(k maxCapSource) wasmkeeper.MessageHandlerFunc {
 		err error,
 	) {
 		if msg.Stargate == nil && msg.Staking == nil ||
-			!k.HasMaxCapLimit(ctx, contractAddr) {
+			!k.HasMaxCapLimit(ctx, contractAddr) ||
+			!k.HasContractVault(ctx, contractAddr) {
 			return nil, nil, wasmtypes.ErrUnknownMsg // pass down the chain
 		}
 		// reject

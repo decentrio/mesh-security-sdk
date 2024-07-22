@@ -253,3 +253,7 @@ type maxCapSourceFn func(ctx sdk.Context, actor sdk.AccAddress) bool
 func (m maxCapSourceFn) HasMaxCapLimit(ctx sdk.Context, actor sdk.AccAddress) bool {
 	return m(ctx, actor)
 }
+
+func (m maxCapSourceFn) HasContractVault(ctx sdk.Context, actor sdk.AccAddress) bool {
+	return m(ctx, actor)
+}

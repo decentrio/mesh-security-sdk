@@ -10,6 +10,7 @@ import (
 	"cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/osmosis-labs/mesh-security-sdk/x/meshsecurity/types"
 )
 
 func TestHasMaxCapLimit(t *testing.T) {
@@ -122,4 +123,51 @@ func TestSetMaxCapLimit(t *testing.T) {
 			assert.Equal(t, limitAmount, k.GetMaxCapLimit(ctx, myContractAddr))
 		})
 	}
+}
+
+func TestStoreDelegator(t *testing.T) {
+	pCtx, keepers := CreateDefaultTestInput(t)
+	k := keepers.MeshKeeper
+
+	d1 := types.Depositors{
+		Address: sdk.AccAddress(rand.Bytes(32)).String(),
+		Tokens:  sdk.NewCoins([]sdk.Coin{sdk.NewCoin("osmo", sdk.NewInt(123))}...),
+	}
+	err := k.SetDepositors(pCtx, d1)
+	require.NoError(t, err)
+
+	d2, f := k.GetDepositors(pCtx, d1.Address)
+	require.True(t, f)
+	require.Equal(t, d1, d2)
+
+	d2.Tokens = d2.Tokens.Add(sdk.NewCoin("juno", sdk.NewInt(10000)))
+	d2.Tokens = d2.Tokens.Add(sdk.NewCoin("juno", sdk.NewInt(10000)))
+	err = k.SetDepositors(pCtx, d2)
+	require.NoError(t, err)
+
+	d3, f := k.GetDepositors(pCtx, d1.Address)
+	require.True(t, f)
+	require.Equal(t, sdk.NewInt(20000), d3.Tokens.AmountOf("juno"))
+}
+
+func TestStoreIntermediary(t *testing.T) {
+	pCtx, keepers := CreateDefaultTestInput(t)
+	k := keepers.MeshKeeper
+
+	coin := sdk.NewCoin("osmo", sdk.NewInt(123))
+	e1 := types.Intermediary{
+		ConsumerValidator: sdk.ValAddress(rand.Bytes(32)).String(),
+		ChainId:           "osmo-1",
+		ContractAddress:   sdk.AccAddress(rand.Bytes(32)).String(),
+		Jailed:            false,
+		Tombstoned:        false,
+		Status:            types.Bonded,
+		Token:             &coin,
+	}
+	err := k.SetIntermediary(pCtx, e1)
+	require.NoError(t, err)
+
+	e2, f := k.GetIntermediary(pCtx, e1.Token.Denom)
+	require.True(t, f)
+	require.Equal(t, e1, e2)
 }
