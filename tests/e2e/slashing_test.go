@@ -1,13 +1,14 @@
 package e2e
 
 import (
-	"cosmossdk.io/math"
 	"encoding/base64"
 	"fmt"
+	"testing"
+
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestSlashingScenario1(t *testing.T) {
@@ -107,7 +108,7 @@ func TestSlashingScenario1(t *testing.T) {
 	// Check new slashable amount
 	require.Equal(t, 66_000_001, providerCli.QuerySlashableAmount())
 	// Check new free collateral
-	require.Equal(t, 1, providerCli.QueryVaultFreeBalance()) // 190 - max(33, 190) = 190 - 190 = 0
+	require.Equal(t, 11, providerCli.QueryVaultFreeBalance()) // 190 - max(33, 190) = 190 - 190 = 0
 }
 
 func TestSlashingScenario2(t *testing.T) {

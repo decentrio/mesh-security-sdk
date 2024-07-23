@@ -1,11 +1,14 @@
 package keeper
 
 import (
+	"fmt"
+	"os"
 	"testing"
 	"time"
 
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
-	"github.com/CosmWasm/wasmd/x/wasm/keeper/wasmtesting"
+	// "github.com/CosmWasm/wasmd/x/wasm/keeper/wasmtesting"
+	"github.com/CosmWasm/wasmd/x/wasm"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	dbm "github.com/cometbft/cometbft-db"
 	"github.com/cometbft/cometbft/libs/log"
@@ -44,6 +47,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/feegrant"
 	"github.com/cosmos/cosmos-sdk/x/gov"
 	govclient "github.com/cosmos/cosmos-sdk/x/gov/client"
+	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/cosmos/cosmos-sdk/x/mint"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
@@ -58,7 +62,10 @@ import (
 	upgradeclient "github.com/cosmos/cosmos-sdk/x/upgrade/client"
 	upgradekeeper "github.com/cosmos/cosmos-sdk/x/upgrade/keeper"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+	ibctransferkeeper "github.com/cosmos/ibc-go/v7/modules/apps/transfer/keeper"
 
+	ibcfeekeeper "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/keeper"
+	ibcfeetypes "github.com/cosmos/ibc-go/v7/modules/apps/29-fee/types"
 	"github.com/osmosis-labs/mesh-security-sdk/x/meshsecurityprovider/types"
 )
 
@@ -219,6 +226,7 @@ func CreateDefaultTestInput(t testing.TB, opts ...Option) (sdk.Context, TestKeep
 	)
 	scopedIBCKeeper := capabilityKeeper.ScopeToModule(ibcexported.ModuleName)
 	scopedWasmKeeper := capabilityKeeper.ScopeToModule(types.ModuleName)
+	scopedTransferKeeper := capabilityKeeper.ScopeToModule(ibctransfertypes.ModuleName)
 
 	paramsKeeper := paramskeeper.NewKeeper(
 		appCodec,
@@ -244,6 +252,23 @@ func CreateDefaultTestInput(t testing.TB, opts ...Option) (sdk.Context, TestKeep
 		upgradeKeeper,
 		scopedIBCKeeper,
 	)
+	ibcFeeKeeper := ibcfeekeeper.NewKeeper(
+		appCodec, keys[ibcfeetypes.StoreKey],
+		ibcKeeper.ChannelKeeper, // may be replaced with IBC middleware
+		ibcKeeper.ChannelKeeper,
+		&ibcKeeper.PortKeeper, accountKeeper, bankKeeper,
+	)
+	transferKeeper := ibctransferkeeper.NewKeeper(
+		appCodec,
+		keys[ibctransfertypes.StoreKey],
+		paramsKeeper.Subspace(ibctransfertypes.ModuleName),
+		ibcFeeKeeper, // ISC4 Wrapper: fee IBC middleware
+		ibcKeeper.ChannelKeeper,
+		&ibcKeeper.PortKeeper,
+		accountKeeper,
+		bankKeeper,
+		scopedTransferKeeper,
+	)
 
 	cfg := sdk.GetConfig()
 	cfg.SetAddressVerifier(wasmtypes.VerifyAddressLen())
@@ -259,15 +284,26 @@ func CreateDefaultTestInput(t testing.TB, opts ...Option) (sdk.Context, TestKeep
 		ibcKeeper.ChannelKeeper,
 		&ibcKeeper.PortKeeper,
 		scopedWasmKeeper,
-		wasmtesting.MockIBCTransferKeeper{},
+		transferKeeper,
 		msgRouter,
 		querier,
 		t.TempDir(),
 		wasmtypes.DefaultWasmConfig(),
-		"iterator,staking,stargate,cosmwasm_1_1,cosmwasm_1_2,cosmwasm_1_3,virtual_staking",
+		"iterator,staking,stargate,cosmwasm_1_1,cosmwasm_1_2,cosmwasm_1_3,virtual_staking,mesh_vault",
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 	require.NoError(t, wasmKeeper.SetParams(ctx, wasmtypes.DefaultParams()))
+	govKeeper := govkeeper.NewKeeper(
+		appCodec,
+		keys[govtypes.StoreKey],
+		accountKeeper,
+		bankKeeper,
+		stakingKeeper,
+		msgRouter,
+		govtypes.DefaultConfig(),
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+	)
+	govKeeper.SetProposalID(ctx, 1)
 
 	meshKeeperProvider := NewKeeper(
 		appCodec,
@@ -284,6 +320,13 @@ func CreateDefaultTestInput(t testing.TB, opts ...Option) (sdk.Context, TestKeep
 	require.NoError(t, meshKeeperProvider.SetParams(ctx, types.DefaultParams(sdk.DefaultBondDenom)))
 
 	faucet := wasmkeeper.NewTestFaucet(t, ctx, bankKeeper, minttypes.ModuleName, sdk.NewInt64Coin(sdk.DefaultBondDenom, 1_000_000_000_000))
+
+	wa := wasm.NewAppModule(appCodec, &wasmKeeper, stakingKeeper, accountKeeper, bankKeeper, msgRouter, paramsKeeper.Subspace(wasmtypes.ModuleName))
+	wa.RegisterInterfaces(encConfig.InterfaceRegistry)
+	configurator := module.NewConfigurator(appCodec, msgRouter, querier)
+
+	wa.RegisterServices(configurator)
+
 	return ctx, TestKeepers{
 		AccountKeeper:      accountKeeper,
 		StakingKeeper:      stakingKeeper,
@@ -313,4 +356,31 @@ func MinValidatorFixture(t *testing.T) stakingtypes.Validator {
 		ConsensusPubkey: pkAny,
 		OperatorAddress: sdk.ValAddress(rand.Bytes(address.Len)).String(),
 	}
+}
+
+func StoreContractCode(ctx sdk.Context, testKeepers TestKeepers, path string) (uint64, error) {
+	govKeeper := wasmkeeper.NewGovPermissionKeeper(testKeepers.WasmKeeper)
+	creator := testKeepers.AccountKeeper.GetModuleAddress(govtypes.ModuleName)
+
+	wasmCode, err := os.ReadFile(path)
+	if err != nil {
+		return 0, err
+	}
+	accessEveryone := wasmtypes.AccessConfig{Permission: wasmtypes.AccessTypeEverybody}
+	codeID, _, err := govKeeper.Create(ctx.WithBlockTime(time.Now()), creator, wasmCode, &accessEveryone)
+	if err != nil {
+		return 0, err
+	}
+	return codeID, nil
+}
+
+func InstantiateContract(ctx sdk.Context, testKeepers TestKeepers, msg []byte, codeID uint64) (sdk.AccAddress, error) {
+	contractKeeper := wasmkeeper.NewDefaultPermissionKeeper(testKeepers.WasmKeeper)
+	creator := testKeepers.AccountKeeper.GetModuleAddress(govtypes.ModuleName)
+	fmt.Println(creator.String())
+	addr, _, err := contractKeeper.Instantiate(ctx, codeID, creator, creator, msg, "contract", nil)
+	if err != nil {
+		return sdk.AccAddress{}, err
+	}
+	return addr, nil
 }

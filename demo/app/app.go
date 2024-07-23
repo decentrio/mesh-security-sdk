@@ -418,6 +418,9 @@ func NewMeshApp(
 
 	app.FeeGrantKeeper = feegrantkeeper.NewKeeper(appCodec, keys[feegrant.StoreKey], app.AccountKeeper)
 
+	fmt.Println("--------")
+	app.MsgServiceRouter()
+	fmt.Println("-------")
 	app.AuthzKeeper = authzkeeper.NewKeeper(keys[authzkeeper.StoreKey], appCodec, app.MsgServiceRouter(), app.AccountKeeper)
 
 	groupConfig := group.DefaultConfig()
@@ -425,6 +428,9 @@ func NewMeshApp(
 		Example of setting group params:
 		groupConfig.MaxMetadataLen = 1000
 	*/
+	fmt.Println("--------")
+	app.MsgServiceRouter()
+	fmt.Println("-------")
 	app.GroupKeeper = groupkeeper.NewKeeper(keys[group.StoreKey], appCodec, app.MsgServiceRouter(), app.AccountKeeper, groupConfig)
 
 	// get skipUpgradeHeights from the app options
@@ -601,6 +607,7 @@ func NewMeshApp(
 	// The last arguments can contain custom message handlers, and custom query handlers,
 	// if we want to allow any custom callbacks
 	availableCapabilities := strings.Join(AllCapabilities(), ",")
+
 	app.WasmKeeper = wasmkeeper.NewKeeper(
 		appCodec,
 		keys[wasmtypes.StoreKey],
@@ -764,10 +771,12 @@ func NewMeshApp(
 
 	// Uncomment if you want to set a custom migration order here.
 	// app.ModuleManager.SetOrderMigrations(custom order)
-
+	fmt.Println("====end")
 	app.ModuleManager.RegisterInvariants(app.CrisisKeeper)
 	app.configurator = module.NewConfigurator(app.appCodec, app.MsgServiceRouter(), app.GRPCQueryRouter())
 	app.ModuleManager.RegisterServices(app.configurator)
+	fmt.Println("end======")
+	app.MsgServiceRouter()
 
 	// RegisterUpgradeHandlers is used for registering any on-chain upgrades.
 	// Make sure it's called after `app.ModuleManager` and `app.configurator` are set.
