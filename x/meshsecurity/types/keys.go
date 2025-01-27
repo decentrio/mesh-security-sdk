@@ -2,6 +2,7 @@ package types
 
 import (
 	"encoding/binary"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/address"
 )
@@ -31,6 +32,9 @@ var (
 	SchedulerKeyPrefix            = []byte{0x4}
 
 	PipedValsetPrefix = []byte{0x5}
+
+	DelegationKey         = []byte{0x6}
+	TombstoneStatusPrefix = []byte{0x7}
 )
 
 type PipedValsetOperation byte
@@ -51,6 +55,7 @@ type SlashInfo struct {
 	Power            int64
 	TotalSlashAmount string
 	SlashFraction    string
+	Infraction       int32
 }
 
 // BuildMaxCapLimitKey build max cap limit store key
@@ -118,4 +123,21 @@ func BuildPipedValsetOpKey(op PipedValsetOperation, val sdk.ValAddress, slashInf
 		copy(r[pn+an+1+1+8+8+1+tn:], slashInfo.SlashFraction)
 	}
 	return r
+}
+
+// BuildDelegationsKey build the delegations's prefix for a contract
+func BuildDelegationsKey(actor sdk.AccAddress) []byte {
+	return append(DelegationKey, address.MustLengthPrefix(actor)...)
+}
+
+// BuildDelegationKey build the prefix for a delegator bond with validator
+func BuildDelegationKey(actor, delAddr sdk.AccAddress, valAddr sdk.ValAddress) []byte {
+	key := append(BuildDelegationsKey(actor), address.MustLengthPrefix(delAddr)...)
+	key = append(key, address.MustLengthPrefix(valAddr)...)
+	return key
+}
+
+// BuildTombstoneStatusKey build store key for the tombstone validator status store
+func BuildTombstoneStatusKey(valAddr sdk.ValAddress) []byte {
+	return append(TombstoneStatusPrefix, valAddr.Bytes()...)
 }
